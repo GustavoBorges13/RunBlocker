@@ -2,6 +2,7 @@ package application;
 
 import samples.Test;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
@@ -13,6 +14,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
@@ -22,6 +24,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.basic.BasicMenuItemUI;
+import javax.swing.plaf.basic.BasicMenuUI;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.border.EtchedBorder;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -29,7 +36,9 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.JScrollPane;
 import modelEclipse.ModeloTabela;
-
+import javax.swing.event.MenuKeyListener;
+import javax.swing.event.MenuKeyEvent;
+import javax.swing.ScrollPaneConstants;
 
 @SuppressWarnings("unused")
 public class InterfaceJframe extends JFrame {
@@ -44,53 +53,112 @@ public class InterfaceJframe extends JFrame {
 	private JLabel lblNewLabel;
 	static Color appearance = Color.WHITE;
 	static JMenuBar menuBar;
-	private JTable table;
+	private JTable tableProgramsInstalled;
+	static JPanel panelProgramsInstalled;
+	private JScrollPane scrollPaneProgramsInstalled;
 	Test lista;
+	private DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+	private static int alinhamento = SwingConstants.LEFT;
+	private JButton btnBlock;
 
-	public static void main(String[] args) {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e) {
-			System.out.println("Error setting native LAF: " + e);
+	
+	public class CustomMenuItemUI extends BasicMenuItemUI {
+		public CustomMenuItemUI(Color color) {
+			super.selectionBackground = color;
 		}
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					InterfaceJframe frame = new InterfaceJframe();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+	}
+
+	public class CustomMenuUI extends BasicMenuUI {
+		public CustomMenuUI(Color color) {
+			super.selectionBackground = color;
+		}
+	}
+
+	// Customize the code to set the background and foreground color for each column
+	// of a JTable
+	class ColumnColorRenderer extends DefaultTableCellRenderer {
+		private static final long serialVersionUID = -2920708207060590184L;
+		Color backgroundColor, foregroundColor;
+
+		public ColumnColorRenderer(Color backgroundColor, Color foregroundColor) {
+			super();
+			this.backgroundColor = backgroundColor;
+			this.foregroundColor = foregroundColor;
+		}
+
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+				int row, int column) {
+			Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			cell.setBackground(backgroundColor);
+			cell.setForeground(foregroundColor);
+			return cell;
+		}
+	}
+
+	private static class HeaderRenderer implements TableCellRenderer {
+
+		DefaultTableCellRenderer renderer;
+
+		public HeaderRenderer(JTable table) {
+			renderer = (DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer();
+			renderer.setHorizontalAlignment(alinhamento);
+		}
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+				int row, int col) {
+			return renderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+		}
+	}
+
+	private void setTableCellAlignment(int alignment) {
+		renderer.setHorizontalAlignment(alignment);
+		for (int i = 0; i < tableProgramsInstalled.getColumnCount(); i++) {
+			tableProgramsInstalled.setDefaultRenderer(tableProgramsInstalled.getColumnClass(i), renderer);
+		}
+		// repaint to show table cell changes
+		tableProgramsInstalled.updateUI();
 	}
 
 	@SuppressWarnings({ "static-access" })
 	public void preencherTabelaProprietario(ArrayList<String> fileName, ArrayList<String> filePath) {
+		JTableHeader header = tableProgramsInstalled.getTableHeader();
+
 		ArrayList<Object[]> dados = new ArrayList<>();
-		String[] Colunas = new String[] { "File Name", "Path"};
+		String[] Colunas = new String[] { " File Name", " Path" };
 
 		for (int i = 0; i < fileName.size(); i++) {
-			dados.add(new Object[] { (fileName.get(i)), (filePath.get(i)) });
+			dados.add(new Object[] { (" " + fileName.get(i)), (" " + filePath.get(i)) });
 		}
 
 		ModeloTabela modelo = new ModeloTabela(dados, Colunas);
-		table.setModel(modelo);
+		tableProgramsInstalled.setModel(modelo);
 
 		// Nao deixa a aumentar a largura das colunas da tabela usando o mouse!
-		table.getColumnModel().getColumn(0).setPreferredWidth(300);
-		table.getColumnModel().getColumn(0).setResizable(false);
-		table.getColumnModel().getColumn(1).setPreferredWidth(600);
-		table.getColumnModel().getColumn(1).setResizable(false);
+		tableProgramsInstalled.getColumnModel().getColumn(0).setPreferredWidth(160);
+		tableProgramsInstalled.getColumnModel().getColumn(0).setResizable(false);
+
+		tableProgramsInstalled.getColumnModel().getColumn(1).setPreferredWidth(700);
+		tableProgramsInstalled.getColumnModel().getColumn(1).setResizable(false);
+
 
 		// Nao vai reodernar os nomes e titulos do cabeçalho da tabela
-		table.getTableHeader().setReorderingAllowed(false);
-
+		tableProgramsInstalled.getTableHeader().setReorderingAllowed(false);
+		//table.getTableHeader().setResizingAllowed(true);
+		
 		// Nao permite aumentar na tabela as colunas
-		table.setAutoResizeMode(table.AUTO_RESIZE_OFF);
+		tableProgramsInstalled.setAutoResizeMode(tableProgramsInstalled.AUTO_RESIZE_OFF);
 
 		// Faz com que o usuario selecione um dado na tabela POR VEZ
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		tableProgramsInstalled.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+		// Realiza os alinhamentos das colunas e linhas
+		header.setDefaultRenderer(new HeaderRenderer(tableProgramsInstalled));
+		setTableCellAlignment(alinhamento);
+		
+		// Realiza a configuracao de fontes
+		tableProgramsInstalled.getTableHeader().setFont(new Font("Dialog", Font.BOLD | Font.ITALIC, 12));
+		tableProgramsInstalled.setFont(new Font("Dialog", Font.PLAIN, 9));
 	}
 
 	public InterfaceJframe() {
@@ -107,6 +175,14 @@ public class InterfaceJframe extends JFrame {
 		// Instancia o MotionPanel que captura os dados da posicao da janela e altera
 		// caso desloca-se
 		JPanel panel = new MotionPanel(this);
+
+		// Personalizacao das barra
+		CustomMenuItemUI menuItemUI_light = new CustomMenuItemUI(Color.GRAY);
+		CustomMenuItemUI menuItemUI_dark = new CustomMenuItemUI(new Color(211, 211, 211));
+		CustomMenuItemUI menuItemUI_blue = new CustomMenuItemUI(new Color(150, 210, 245));
+		CustomMenuUI menuUI_ligth = new CustomMenuUI(Color.GRAY);
+		CustomMenuUI menuUI_dark = new CustomMenuUI(Color.WHITE);
+		CustomMenuUI menuUI_blue = new CustomMenuUI(new Color(30, 144, 255));
 
 		panel.setBackground(BarraPrincipal);
 		panel.setBounds(0, 0, 817, 31);
@@ -184,17 +260,25 @@ public class InterfaceJframe extends JFrame {
 		panel.add(lblNewLabel);
 
 		menuBar = new JMenuBar();
-		menuBar.setBackground(appearance);
+		menuBar.setOpaque(true);
 		menuBar.setBounds(0, 31, 817, 22);
 		contentPane.add(menuBar);
 
-		JMenu mnNewMenu = new JMenu("Window");
-		menuBar.add(mnNewMenu);
+		JMenu menuWindow = new JMenu("Window");
+		menuWindow.setFont(new Font("Dialog", Font.BOLD, 12));
+		menuWindow.setForeground(Color.DARK_GRAY);
+		menuWindow.setOpaque(false);
+		menuBar.add(menuWindow);
 
 		// Barra de preferencias - THEME!!
 		// ----------------------------------------------------
-		JMenuItem mntmNewMenuItem = new JMenuItem("Preference");
-		mntmNewMenuItem.addActionListener(new ActionListener() {
+		JMenuItem menuPreference = new JMenuItem("Preference");
+		menuPreference.setOpaque(true);
+
+		menuWindow.setUI(menuUI_blue);
+		menuPreference.setUI(menuItemUI_blue);
+
+		menuPreference.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String s;
 				if (appearance == Color.WHITE) {
@@ -211,48 +295,81 @@ public class InterfaceJframe extends JFrame {
 				if ((s != null) && (s.length() > 0)) {
 					if (s == "light") {
 						appearance = Color.WHITE;
-						contentPane.setBackground(InterfaceJframe.appearance);
+						InterfaceJframe.panelProgramsInstalled.setBackground(Color.WHITE);
 						InterfaceJframe.contentPane.setBackground(InterfaceJframe.appearance);
-						InterfaceJframe.menuBar.setBackground(InterfaceJframe.appearance);
+						menuBar.setBackground(Color.WHITE);
+						menuWindow.setBackground(Color.WHITE);
+						menuWindow.setForeground(Color.DARK_GRAY);
+						menuPreference.setBackground(Color.WHITE);
+						menuPreference.setForeground(Color.DARK_GRAY);
+						menuWindow.setUI(menuUI_blue);
+						menuPreference.setUI(menuItemUI_dark);
+						scrollPaneProgramsInstalled.setBackground(new Color(238, 238, 238));
+						tableProgramsInstalled.setBackground(Color.WHITE);
+						tableProgramsInstalled.setForeground(Color.DARK_GRAY);
 						return;
 					} else {
-						appearance = Color.BLACK;
-						contentPane.setBackground(InterfaceJframe.appearance);
+						appearance = Color.GRAY;
+						InterfaceJframe.panelProgramsInstalled.setBackground(Color.GRAY);
 						InterfaceJframe.contentPane.setBackground(InterfaceJframe.appearance);
-						InterfaceJframe.menuBar.setBackground(InterfaceJframe.appearance);
+						menuBar.setBackground(Color.DARK_GRAY);
+						menuWindow.setBackground(Color.DARK_GRAY);
+						menuWindow.setForeground(Color.WHITE);
+						menuPreference.setBackground(Color.DARK_GRAY);
+						menuPreference.setForeground(Color.WHITE);
+						menuWindow.setUI(menuUI_blue);
+						menuPreference.setUI(menuItemUI_dark);
+						scrollPaneProgramsInstalled.setBackground(Color.GRAY);
+						tableProgramsInstalled.setBackground(Color.DARK_GRAY);
+						tableProgramsInstalled.setForeground(Color.WHITE);
 						return;
 					}
 
 				}
 			}
 		});
-		mnNewMenu.add(mntmNewMenuItem);
+		menuWindow.add(menuPreference);
 
-		JPanel panel_1 = new JPanel();
-		panel_1.setBorder(new TitledBorder(
-				new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)),
-				": : Programs Blocked : :", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-		panel_1.setBackground(Color.WHITE);
-		panel_1.setBounds(10, 64, 797, 390);
-		contentPane.add(panel_1);
-		panel_1.setLayout(null);
+		panelProgramsInstalled = new JPanel();
+		panelProgramsInstalled.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), ": : Programs Installed : :", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panelProgramsInstalled.setBackground(Color.WHITE);
+		panelProgramsInstalled.setBounds(10, 64, 396, 390);
+		contentPane.add(panelProgramsInstalled);
+		panelProgramsInstalled.setLayout(null);
 
-		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(10, 25, 777, 354);
-		panel_1.add(scrollPane);
+		scrollPaneProgramsInstalled = new JScrollPane();
+		scrollPaneProgramsInstalled.setBackground(new Color(238, 238, 238));
+		scrollPaneProgramsInstalled.setBounds(10, 25, 374, 354);
+		panelProgramsInstalled.add(scrollPaneProgramsInstalled);
 
 		// Tabela
-		table = new JTable();
-		table.setVisible(true);
-		scrollPane.setViewportView(table);
+		tableProgramsInstalled = new JTable();
+		tableProgramsInstalled.setForeground(Color.DARK_GRAY);
+		tableProgramsInstalled.setBackground(Color.WHITE);
+		tableProgramsInstalled.setVisible(true);
+		scrollPaneProgramsInstalled.setViewportView(tableProgramsInstalled);
+		
+		JPanel panelProgramsBlocked = new JPanel();
+		panelProgramsBlocked.setLayout(null);
+		panelProgramsBlocked.setBorder(new TitledBorder(
+						new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)),
+						": : Programs Blocked : :", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panelProgramsBlocked.setBackground(Color.WHITE);
+		panelProgramsBlocked.setBounds(405, 64, 406, 390);
+		contentPane.add(panelProgramsBlocked);
+		
+		JScrollPane scrollPaneProgramsInstalled_1 = new JScrollPane();
+		scrollPaneProgramsInstalled_1.setBackground(UIManager.getColor("Button.background"));
+		scrollPaneProgramsInstalled_1.setBounds(10, 25, 384, 354);
+		panelProgramsBlocked.add(scrollPaneProgramsInstalled_1);
 
-		JPanel panel_2 = new JPanel();
-		panel_2.setBounds(10, 458, 797, 38);
-		contentPane.add(panel_2);
-		panel_2.setLayout(null);
+		JPanel panelButtonsActions = new JPanel();
+		panelButtonsActions.setBounds(12, 458, 795, 38);
+		contentPane.add(panelButtonsActions);
+		panelButtonsActions.setLayout(null);
 
 		// NAVEGAR NOS DIRETORIOS
-		JButton btnAdd = new JButton("Add");
+		JButton btnAdd = new JButton("Add other application (.exe)");
 		btnAdd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc = new JFileChooser();
@@ -278,20 +395,48 @@ public class InterfaceJframe extends JFrame {
 				}
 			}
 		});
-		btnAdd.setBounds(315, 8, 51, 22);
-		panel_2.add(btnAdd);
+		btnAdd.setBounds(44, 8, 192, 22);
+		panelButtonsActions.add(btnAdd);
 
-		JButton btnDelete = new JButton("Delete");
-		btnDelete.setBounds(371, 8, 63, 22);
-		panel_2.add(btnDelete);
+		JButton btnUnlock = new JButton("Unlock");
+		btnUnlock.setBounds(566, 8, 84, 22);
+		panelButtonsActions.add(btnUnlock);
+		
+		btnBlock = new JButton("Block");
+		btnBlock.setBounds(248, 8, 78, 22);
+		panelButtonsActions.add(btnBlock);
 
 		JButton btnApply = new JButton("Apply");
 		btnApply.setBounds(439, 8, 59, 22);
 
-		RegistryAction registry = new RegistryAction();;
-		
-		
+		RegistryAction registry = new RegistryAction();
+		;
+
 		preencherTabelaProprietario(RegistryAction.fileName, RegistryAction.filePath);
-		
+
+	}
+
+	public static void main(String[] args) {
+		try {
+			try {
+				UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+			} catch (ClassNotFoundException ex) {
+			} catch (InstantiationException ex) {
+			} catch (IllegalAccessException ex) {
+			} catch (UnsupportedLookAndFeelException ex) {
+			}
+		} catch (Exception e) {
+			System.out.println("Error setting native LAF: " + e);
+		}
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					InterfaceJframe frame = new InterfaceJframe();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 }
