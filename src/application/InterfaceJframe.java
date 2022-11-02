@@ -9,6 +9,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -39,11 +42,12 @@ import modelEclipse.ModeloTabela;
 import javax.swing.event.MenuKeyListener;
 import javax.swing.event.MenuKeyEvent;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.event.AncestorListener;
+import javax.swing.event.AncestorEvent;
 
 @SuppressWarnings("unused")
 public class InterfaceJframe extends JFrame {
 	private static final long serialVersionUID = 1403833901296522920L;
-
 	static JPanel contentPane;
 	private Color BarraPrincipal = new Color(0, 100, 100);
 	private JLabel exitLabel;
@@ -55,113 +59,135 @@ public class InterfaceJframe extends JFrame {
 	static JMenuBar menuBar;
 	private JTable tableProgramsInstalled;
 	static JPanel panelProgramsInstalled;
+	private JTable tableProgramsBlocked;
 	private JScrollPane scrollPaneProgramsInstalled;
-	Test lista;
 	private DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
 	private static int alinhamento = SwingConstants.LEFT;
 	private JButton btnBlock;
+	private JButton btnApply;
+	private JButton btnRemove;
+	private JButton btnAdd;
 
+	// Lista de programas bloqueados
+	private ArrayList<String> fileName = new ArrayList<String>();
+	private ArrayList<String> filePath = new ArrayList<String>();
+	private static ArrayList<String> fileNameB = new ArrayList<String>();
+	private static ArrayList<String> filePathB = new ArrayList<String>();
 	
-	public class CustomMenuItemUI extends BasicMenuItemUI {
-		public CustomMenuItemUI(Color color) {
-			super.selectionBackground = color;
-		}
-	}
-
-	public class CustomMenuUI extends BasicMenuUI {
-		public CustomMenuUI(Color color) {
-			super.selectionBackground = color;
-		}
-	}
-
-	// Customize the code to set the background and foreground color for each column
-	// of a JTable
-	class ColumnColorRenderer extends DefaultTableCellRenderer {
-		private static final long serialVersionUID = -2920708207060590184L;
-		Color backgroundColor, foregroundColor;
-
-		public ColumnColorRenderer(Color backgroundColor, Color foregroundColor) {
-			super();
-			this.backgroundColor = backgroundColor;
-			this.foregroundColor = foregroundColor;
-		}
-
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-				int row, int column) {
-			Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			cell.setBackground(backgroundColor);
-			cell.setForeground(foregroundColor);
-			return cell;
-		}
-	}
-
-	private static class HeaderRenderer implements TableCellRenderer {
-
-		DefaultTableCellRenderer renderer;
-
-		public HeaderRenderer(JTable table) {
-			renderer = (DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer();
-			renderer.setHorizontalAlignment(alinhamento);
-		}
-
-		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-				int row, int col) {
-			return renderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
-		}
-	}
-
-	private void setTableCellAlignment(int alignment) {
-		renderer.setHorizontalAlignment(alignment);
-		for (int i = 0; i < tableProgramsInstalled.getColumnCount(); i++) {
-			tableProgramsInstalled.setDefaultRenderer(tableProgramsInstalled.getColumnClass(i), renderer);
-		}
-		// repaint to show table cell changes
-		tableProgramsInstalled.updateUI();
-	}
-
-	@SuppressWarnings({ "static-access" })
-	public void preencherTabelaProprietario(ArrayList<String> fileName, ArrayList<String> filePath) {
-		JTableHeader header = tableProgramsInstalled.getTableHeader();
-
-		ArrayList<Object[]> dados = new ArrayList<>();
-		String[] Colunas = new String[] { " File Name", " Path" };
-
-		for (int i = 0; i < fileName.size(); i++) {
-			dados.add(new Object[] { (" " + fileName.get(i)), (" " + filePath.get(i)) });
-		}
-
-		ModeloTabela modelo = new ModeloTabela(dados, Colunas);
-		tableProgramsInstalled.setModel(modelo);
-
-		// Nao deixa a aumentar a largura das colunas da tabela usando o mouse!
-		tableProgramsInstalled.getColumnModel().getColumn(0).setPreferredWidth(160);
-		tableProgramsInstalled.getColumnModel().getColumn(0).setResizable(false);
-
-		tableProgramsInstalled.getColumnModel().getColumn(1).setPreferredWidth(700);
-		tableProgramsInstalled.getColumnModel().getColumn(1).setResizable(false);
-
-
-		// Nao vai reodernar os nomes e titulos do cabeçalho da tabela
-		tableProgramsInstalled.getTableHeader().setReorderingAllowed(false);
-		//table.getTableHeader().setResizingAllowed(true);
-		
-		// Nao permite aumentar na tabela as colunas
-		tableProgramsInstalled.setAutoResizeMode(tableProgramsInstalled.AUTO_RESIZE_OFF);
-
-		// Faz com que o usuario selecione um dado na tabela POR VEZ
-		tableProgramsInstalled.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-		// Realiza os alinhamentos das colunas e linhas
-		header.setDefaultRenderer(new HeaderRenderer(tableProgramsInstalled));
-		setTableCellAlignment(alinhamento);
-		
-		// Realiza a configuracao de fontes
-		tableProgramsInstalled.getTableHeader().setFont(new Font("Dialog", Font.BOLD | Font.ITALIC, 12));
-		tableProgramsInstalled.setFont(new Font("Dialog", Font.PLAIN, 9));
-	}
-
+	
 	public InterfaceJframe() {
+		windowConfigurations();
+		actions();
+	}
+
+	public void actions() {
+		
+		//Manipulacao de arquivos - Criacao e leitura
+		GetWindowsPrograms installedPrograms = new GetWindowsPrograms();
+		GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked();
+		
+		//Preenchimento das tabelas
+		preencherTabelaProprietario(GetWindowsPrograms.fileName, GetWindowsPrograms.filePath, tableProgramsInstalled);
+		preencherTabelaProprietario(fileName, filePath, tableProgramsBlocked);
+		
+		// preencherTabelaProprietario(RegistryAction.fileName, RegistryAction.filePath,
+		// tableProgramsInstalled);
+		// Table Programs Installed actions
+		tableProgramsInstalled.addMouseListener(new MouseAdapter() {
+			boolean isAlreadyOneClick;
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				btnBlock.setEnabled(true);
+				
+				if (isAlreadyOneClick) {
+					btnBlock.doClick();
+				} else {
+					isAlreadyOneClick = true;
+
+					// Habilitar o botao block
+
+					// Se clicar duas vezes, mostrar janela de dialogo
+					Timer t = new Timer("doubleclickTimer", false);
+					t.schedule(new TimerTask() {
+
+						@Override
+						public void run() {
+							isAlreadyOneClick = false;
+						}
+					}, 300);
+				}
+			}
+		});
+
+		// Block
+		btnBlock.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int column = 0;
+				int row = tableProgramsInstalled.getSelectedRow();
+				ManipuladorDeArquivo arquivo = new ManipuladorDeArquivo();
+				
+				// Define o path padrao
+				String username = System.getProperty("user.name");
+				
+				// System.out.println(username);
+				String path = "C:\\Users\\" + username + "\\AppData\\Local\\Run Blocker\\";
+				String nomeDoArquivo = "ProgramsBlocked.txt";
+				
+				if (JOptionPane.showConfirmDialog(null,
+						"Are you sure you want to block the program:\n>"
+								+ tableProgramsInstalled.getModel().getValueAt(row, column).toString() + "\n"
+								+ tableProgramsInstalled.getModel().getValueAt(row, column + 1).toString(),
+						"WARNING", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+					
+					
+					//arquivo.leitor(getName());
+					
+					
+					fileName.add(tableProgramsInstalled.getModel().getValueAt(row, column).toString());
+					filePath.add(tableProgramsInstalled.getModel().getValueAt(row, column + 1).toString());
+					preencherTabelaProprietario(fileName, filePath, tableProgramsBlocked);
+					try {
+						arquivo.escritor(path, nomeDoArquivo, fileName, filePath);
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				} else {
+					tableProgramsInstalled.getSelectionModel().clearSelection();
+				}
+			}
+		});
+
+		// Add other application (.exe)
+		btnAdd.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fc = new JFileChooser();
+
+				// Restringir o usuário para selecionar arquivos de todos os tipos
+				fc.setAcceptAllFileFilterUsed(false);
+
+				// Coloca um titulo para a janela de dialogo
+				fc.setDialogTitle("Selecione um arquivo .txt");
+
+				// Habilita para o user escolher apenas arquivos do tipo: txt
+				FileNameExtensionFilter restrict = new FileNameExtensionFilter("Somente arquivos .txt", "txt");
+				fc.addChoosableFileFilter(restrict);
+
+				// Invocar a função showOpenDialog para mostrar a janela de selecao de arquivos
+				// Binario -> 0 = arquivo selecionado.
+				int r = fc.showOpenDialog(null);
+
+				// System.out.println(r); //debug
+
+				if (r == JFileChooser.APPROVE_OPTION) {
+
+				}
+			}
+		});
+	}
+
+	public void windowConfigurations() {
 		setUndecorated(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 817, 507);
@@ -331,7 +357,9 @@ public class InterfaceJframe extends JFrame {
 		menuWindow.add(menuPreference);
 
 		panelProgramsInstalled = new JPanel();
-		panelProgramsInstalled.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), ": : Programs Installed : :", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panelProgramsInstalled.setBorder(new TitledBorder(
+				new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)),
+				": : Programs Installed : :", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		panelProgramsInstalled.setBackground(Color.WHITE);
 		panelProgramsInstalled.setBounds(10, 64, 396, 390);
 		contentPane.add(panelProgramsInstalled);
@@ -348,72 +376,140 @@ public class InterfaceJframe extends JFrame {
 		tableProgramsInstalled.setBackground(Color.WHITE);
 		tableProgramsInstalled.setVisible(true);
 		scrollPaneProgramsInstalled.setViewportView(tableProgramsInstalled);
-		
+
 		JPanel panelProgramsBlocked = new JPanel();
 		panelProgramsBlocked.setLayout(null);
-		panelProgramsBlocked.setBorder(new TitledBorder(
-						new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)),
-						": : Programs Blocked : :", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panelProgramsBlocked.setBorder(new TitledBorder(
+
+				new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)),
+
+				": : Programs Blocked : :", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		panelProgramsBlocked.setBackground(Color.WHITE);
 		panelProgramsBlocked.setBounds(405, 64, 406, 390);
 		contentPane.add(panelProgramsBlocked);
-		
-		JScrollPane scrollPaneProgramsInstalled_1 = new JScrollPane();
-		scrollPaneProgramsInstalled_1.setBackground(UIManager.getColor("Button.background"));
-		scrollPaneProgramsInstalled_1.setBounds(10, 25, 384, 354);
-		panelProgramsBlocked.add(scrollPaneProgramsInstalled_1);
+
+		JScrollPane scrollPaneProgramsBlocked = new JScrollPane();
+		scrollPaneProgramsBlocked.setBackground(new Color(238, 238, 238));
+		scrollPaneProgramsBlocked.setBounds(10, 25, 384, 354);
+		panelProgramsBlocked.add(scrollPaneProgramsBlocked);
+
+		// Tabela
+		tableProgramsBlocked = new JTable();
+		tableProgramsBlocked.setForeground(Color.DARK_GRAY);
+		tableProgramsBlocked.setBackground(Color.WHITE);
+		tableProgramsBlocked.setVisible(true);
+		scrollPaneProgramsBlocked.setViewportView(tableProgramsBlocked);
 
 		JPanel panelButtonsActions = new JPanel();
 		panelButtonsActions.setBounds(12, 458, 795, 38);
 		contentPane.add(panelButtonsActions);
 		panelButtonsActions.setLayout(null);
 
-		// NAVEGAR NOS DIRETORIOS
-		JButton btnAdd = new JButton("Add other application (.exe)");
-		btnAdd.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser fc = new JFileChooser();
+		btnAdd = new JButton("Add other application (.exe)");
 
-				// Restringir o usuário para selecionar arquivos de todos os tipos
-				fc.setAcceptAllFileFilterUsed(false);
-
-				// Coloca um titulo para a janela de dialogo
-				fc.setDialogTitle("Selecione um arquivo .txt");
-
-				// Habilita para o user escolher apenas arquivos do tipo: txt
-				FileNameExtensionFilter restrict = new FileNameExtensionFilter("Somente arquivos .txt", "txt");
-				fc.addChoosableFileFilter(restrict);
-
-				// Invocar a função showOpenDialog para mostrar a janela de selecao de arquivos
-				// Binario -> 0 = arquivo selecionado.
-				int r = fc.showOpenDialog(null);
-
-				// System.out.println(r); //debug
-
-				if (r == JFileChooser.APPROVE_OPTION) {
-
-				}
-			}
-		});
 		btnAdd.setBounds(44, 8, 192, 22);
 		panelButtonsActions.add(btnAdd);
 
-		JButton btnUnlock = new JButton("Unlock");
-		btnUnlock.setBounds(566, 8, 84, 22);
-		panelButtonsActions.add(btnUnlock);
+		btnRemove = new JButton("Remove");
+		btnRemove.setEnabled(false);
+		btnRemove.setBounds(508, 8, 84, 22);
+		panelButtonsActions.add(btnRemove);
+	
 		
 		btnBlock = new JButton("Block");
+		btnBlock.setEnabled(false);
 		btnBlock.setBounds(248, 8, 78, 22);
 		panelButtonsActions.add(btnBlock);
-
+		
 		JButton btnApply = new JButton("Apply");
-		btnApply.setBounds(439, 8, 59, 22);
+		btnApply.setEnabled(true);
+		btnApply.setBounds(604, 8, 84, 22);
+		panelButtonsActions.add(btnApply);
 
-		RegistryAction registry = new RegistryAction();
-		;
+	}
 
-		preencherTabelaProprietario(RegistryAction.fileName, RegistryAction.filePath);
+	public class CustomMenuItemUI extends BasicMenuItemUI {
+		public CustomMenuItemUI(Color color) {
+			super.selectionBackground = color;
+		}
+	}
 
+	public class CustomMenuUI extends BasicMenuUI {
+		public CustomMenuUI(Color color) {
+			super.selectionBackground = color;
+		}
+	}
+
+	// Customize the code to set the background and foreground color for each column
+	// of a JTable
+	class ColumnColorRenderer extends DefaultTableCellRenderer {
+		private static final long serialVersionUID = -2920708207060590184L;
+		Color backgroundColor, foregroundColor;
+
+		public ColumnColorRenderer(Color backgroundColor, Color foregroundColor) {
+			super();
+			this.backgroundColor = backgroundColor;
+			this.foregroundColor = foregroundColor;
+		}
+
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+				int row, int column) {
+			Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			cell.setBackground(backgroundColor);
+			cell.setForeground(foregroundColor);
+			return cell;
+		}
+	}
+
+	public class HorizontalAlignmentHeaderRenderer implements TableCellRenderer {
+		private int horizontalAlignment = SwingConstants.LEFT;
+
+		public HorizontalAlignmentHeaderRenderer(int horizontalAlignment) {
+			this.horizontalAlignment = horizontalAlignment;
+		}
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+				int row, int column) {
+			TableCellRenderer r = table.getTableHeader().getDefaultRenderer();
+			JLabel l = (JLabel) r.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			l.setHorizontalAlignment(horizontalAlignment);
+			return l;
+		}
+	}
+
+	@SuppressWarnings("static-access")
+	public void preencherTabelaProprietario(ArrayList<String> fName, ArrayList<String> fPath, JTable table) {
+		ArrayList<Object[]> dados = new ArrayList<>();
+		String[] Colunas = new String[] { " File Name", " Path" };
+
+		for (int i = 0; i < fName.size(); i++) {
+			dados.add(new Object[] { (fName.get(i)), (fPath.get(i)) });
+		}
+
+		ModeloTabela modelo = new ModeloTabela(dados, Colunas);
+		table.setModel(modelo);
+
+		// Nao deixa a aumentar a largura das colunas da tabela usando o mouse e realiza os alinhamentos das colunas e linhas!
+		table.getColumnModel().getColumn(0).setPreferredWidth(160);
+		table.getColumnModel().getColumn(0).setResizable(false);
+		table.getColumnModel().getColumn(0)	.setHeaderRenderer(new HorizontalAlignmentHeaderRenderer(alinhamento));
+		table.getColumnModel().getColumn(1).setPreferredWidth(540);
+		table.getColumnModel().getColumn(1).setResizable(false);
+		table.getColumnModel().getColumn(1)	.setHeaderRenderer(new HorizontalAlignmentHeaderRenderer(alinhamento));
+		
+		// Nao vai reodernar os nomes e titulos do cabeçalho da tabela
+		table.getTableHeader().setReorderingAllowed(false);
+
+		// Nao permite aumentar na tabela as colunas
+		table.setAutoResizeMode(table.AUTO_RESIZE_OFF);
+
+		// Faz com que o usuario selecione um dado na tabela POR VEZ
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+		// Realiza a configuracao de fontes
+		table.getTableHeader().setFont(new Font("Dialog", Font.BOLD | Font.ITALIC, 12));
+		table.setFont(new Font("Dialog", Font.PLAIN, 9));
 	}
 
 	public static void main(String[] args) {

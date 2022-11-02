@@ -16,7 +16,7 @@ import static com.sun.jna.platform.win32.WinReg.HKEY_CURRENT_USER;
 import static com.sun.jna.platform.win32.WinReg.HKEY_LOCAL_MACHINE;
 
 @SuppressWarnings("unused")
-public class RegistryAction {
+public class GetWindowsPrograms {
 	// Faz uma lista das chaves contidas no diretorio App Paths (programa.exe)
 	public static ArrayList<String> filePath = new ArrayList<String>();
 	public static ArrayList<String> fileName = new ArrayList<String>();
@@ -28,7 +28,7 @@ public class RegistryAction {
 	public static String[] listTemp = Advapi32Util.registryGetKeys(HKEY_LOCAL_MACHINE,
 					"Software\\Microsoft\\Windows\\CurrentVersion\\App Paths");
 
-	public RegistryAction() throws IndexOutOfBoundsException {
+	public GetWindowsPrograms() throws IndexOutOfBoundsException {
 		// Conseguir o diretorio de um lugar
 		// System.out.println(Advapi32Util.registryGetStringValue(HKEY_LOCAL_MACHINE,
 		// "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\LeagueClient.exe",
@@ -50,11 +50,9 @@ public class RegistryAction {
 
 				filePath.add("N/A");
 				vetPathNotFounded.add(i);
-				//i=i-1;
 			}
 		}
 		
-		System.out.println(vetPathNotFounded.size());
 
 		int pos = 0;
 		//Deleta da lista os arquivos sem path de destino.
@@ -71,10 +69,10 @@ public class RegistryAction {
 		// Define o path padrao
 		String username = System.getProperty("user.name");
 		// System.out.println(username);
-		String path = "C:\\Users\\" + username + "\\AppData\\Local\\Run Blocker\\Teste.txt";
-
+		String path = "C:\\Users\\" + username + "\\AppData\\Local\\Run Blocker\\";
+		String nomeDoArquivo = "ProgramsInstalled.txt";
 		try {
-			arquivo.escritor(path, fileName, filePath); // Cria o arquivo e salva os dados
+			arquivo.escritor(path, nomeDoArquivo, fileName, filePath); // Cria o arquivo e salva os dados
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
