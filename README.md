@@ -1,6 +1,6 @@
 ```diff
 - Em desenvolvimento!
-+ Atualização 1.0
++ Atualização 1.1
 # First Project
 ```
 # RunBlocker
