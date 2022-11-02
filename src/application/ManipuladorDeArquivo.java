@@ -18,30 +18,25 @@ public class ManipuladorDeArquivo {
 	public void leitor(String path, String nomeDoArquivo) throws IOException {
 		try (BufferedReader buffRead = new BufferedReader(new FileReader(path+nomeDoArquivo))) {
 			String[] split;// Vetor de separacao de cada conteudo na linha
-			ArrayList<String> filePath = new ArrayList<String>();
-			ArrayList<String> fileName = new ArrayList<String>();
-			
+
 			// - - - Lendo o arquivo...
 			String linha = buffRead.readLine(); // ler a primeira linha do arquivo
 			try {
 				while (linha != null) {
 
-					split = linha.split(" - "); // Separacao -> Nome=0 ; Matricula=1; Nota=2
-
-					fileName.add(split[0]); // Salva a leitura do nome do aluno para um vetor.
-					filePath.add(split[1]); // Salva a leitura do path para uma lista.
-
-					linha = buffRead.readLine();
-					System.out.println(split[0]+" >> "+split[1]);
+					split = linha.split(" - "); // Separa o nome do path
+				
+					InterfaceJframe.fileNameB.add(split[0]); // Salva a leitura do nome do aluno para um vetor.
+					InterfaceJframe.filePathB.add(split[1]); // Salva a leitura do path para uma lista.
+					
+					linha = buffRead.readLine(); // Linha p/ linha
 				}
 			} catch (ArrayIndexOutOfBoundsException e) {
 				e.printStackTrace();
 
 				System.out.println(
 						"Ja foram lidos todas as linhas... o programa desconsiderou o que existe depois das ultimas palavras...");
-			}
-			System.out.println("- Chegou no fim do arquivo!\n");
-			
+			}		
 			buffRead.close();
 		} catch (IOException e) {
 			System.out.println("Error: " + e.getMessage());

@@ -71,25 +71,39 @@ public class InterfaceJframe extends JFrame {
 	// Lista de programas bloqueados
 	private ArrayList<String> fileName = new ArrayList<String>();
 	private ArrayList<String> filePath = new ArrayList<String>();
-	private static ArrayList<String> fileNameB = new ArrayList<String>();
-	private static ArrayList<String> filePathB = new ArrayList<String>();
-	
-	
+	static ArrayList<String> fileNameB = new ArrayList<String>();
+	static ArrayList<String> filePathB = new ArrayList<String>();
+
 	public InterfaceJframe() {
 		windowConfigurations();
+
 		actions();
+
 	}
 
 	public void actions() {
-		
-		//Manipulacao de arquivos - Criacao e leitura
+		// Manipulacao de arquivos - Criacao e leitura
+		int flag;
+
+		// Cria um arquivo contendo os programas instalados
 		GetWindowsPrograms installedPrograms = new GetWindowsPrograms();
-		GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked();
-		
-		//Preenchimento das tabelas
+
+		// Verifica se ja existe algum arquivo dos programas bloqueados, caso contrario
+		// ele cria um novo
+		try {
+			flag = 0;
+			GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked(flag);
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Error when opening the locked programs file!\\nError: " + e);
+		} finally {
+			flag = 1;
+			GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked(flag);
+		}
+
+		// Preenchimento das tabelas com os dados obtidos
 		preencherTabelaProprietario(GetWindowsPrograms.fileName, GetWindowsPrograms.filePath, tableProgramsInstalled);
-		preencherTabelaProprietario(fileName, filePath, tableProgramsBlocked);
-		
+		preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
+
 		// preencherTabelaProprietario(RegistryAction.fileName, RegistryAction.filePath,
 		// tableProgramsInstalled);
 		// Table Programs Installed actions
@@ -99,7 +113,7 @@ public class InterfaceJframe extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				btnBlock.setEnabled(true);
-				
+
 				if (isAlreadyOneClick) {
 					btnBlock.doClick();
 				} else {
@@ -125,36 +139,48 @@ public class InterfaceJframe extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				int column = 0;
 				int row = tableProgramsInstalled.getSelectedRow();
-				ManipuladorDeArquivo arquivo = new ManipuladorDeArquivo();
-				
+				boolean duplicated = false;
+
 				// Define o path padrao
 				String username = System.getProperty("user.name");
-				
+
 				// System.out.println(username);
 				String path = "C:\\Users\\" + username + "\\AppData\\Local\\Run Blocker\\";
 				String nomeDoArquivo = "ProgramsBlocked.txt";
-				
-				if (JOptionPane.showConfirmDialog(null,
-						"Are you sure you want to block the program:\n>"
-								+ tableProgramsInstalled.getModel().getValueAt(row, column).toString() + "\n"
-								+ tableProgramsInstalled.getModel().getValueAt(row, column + 1).toString(),
-						"WARNING", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-					
-					
-					//arquivo.leitor(getName());
-					
-					
-					fileName.add(tableProgramsInstalled.getModel().getValueAt(row, column).toString());
-					filePath.add(tableProgramsInstalled.getModel().getValueAt(row, column + 1).toString());
-					preencherTabelaProprietario(fileName, filePath, tableProgramsBlocked);
-					try {
-						arquivo.escritor(path, nomeDoArquivo, fileName, filePath);
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+
+				for (int i = 0; i < fileNameB.size(); i++) {
+					if (tableProgramsInstalled.getModel().getValueAt(row, column).toString() == fileNameB.get(i)) {
+						duplicated = true;
+						break;
+					} else {
+						duplicated = false;
 					}
+				}
+				
+				if (duplicated == true) {
+					JOptionPane.showMessageDialog(null, "Operation cancelled! You have already blocked this program.");
 				} else {
-					tableProgramsInstalled.getSelectionModel().clearSelection();
+					if (JOptionPane.showConfirmDialog(null,
+							"Are you sure you want to block the program:\n>"
+									+ tableProgramsInstalled.getModel().getValueAt(row, column).toString() + "\n"
+									+ tableProgramsInstalled.getModel().getValueAt(row, column + 1).toString(),
+							"WARNING", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+
+						fileNameB.add(tableProgramsInstalled.getModel().getValueAt(row, column).toString());
+						filePathB.add(tableProgramsInstalled.getModel().getValueAt(row, column + 1).toString());
+						preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
+
+						try {
+							int flag = 1;
+							GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked(flag);
+						} catch (Exception ex) {
+							JOptionPane.showMessageDialog(null,
+									"Error when opening the locked programs file!\\nError: " + ex);
+						}
+
+					} else {
+						tableProgramsInstalled.getSelectionModel().clearSelection();
+					}
 				}
 			}
 		});
@@ -221,6 +247,7 @@ public class InterfaceJframe extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				InterfaceJframe.this.dispose();
+				System.exit(0);
 			}
 
 			@Override
@@ -414,13 +441,12 @@ public class InterfaceJframe extends JFrame {
 		btnRemove.setEnabled(false);
 		btnRemove.setBounds(508, 8, 84, 22);
 		panelButtonsActions.add(btnRemove);
-	
-		
+
 		btnBlock = new JButton("Block");
 		btnBlock.setEnabled(false);
 		btnBlock.setBounds(248, 8, 78, 22);
 		panelButtonsActions.add(btnBlock);
-		
+
 		JButton btnApply = new JButton("Apply");
 		btnApply.setEnabled(true);
 		btnApply.setBounds(604, 8, 84, 22);
@@ -490,14 +516,15 @@ public class InterfaceJframe extends JFrame {
 		ModeloTabela modelo = new ModeloTabela(dados, Colunas);
 		table.setModel(modelo);
 
-		// Nao deixa a aumentar a largura das colunas da tabela usando o mouse e realiza os alinhamentos das colunas e linhas!
+		// Nao deixa a aumentar a largura das colunas da tabela usando o mouse e realiza
+		// os alinhamentos das colunas e linhas!
 		table.getColumnModel().getColumn(0).setPreferredWidth(160);
 		table.getColumnModel().getColumn(0).setResizable(false);
-		table.getColumnModel().getColumn(0)	.setHeaderRenderer(new HorizontalAlignmentHeaderRenderer(alinhamento));
+		table.getColumnModel().getColumn(0).setHeaderRenderer(new HorizontalAlignmentHeaderRenderer(alinhamento));
 		table.getColumnModel().getColumn(1).setPreferredWidth(540);
 		table.getColumnModel().getColumn(1).setResizable(false);
-		table.getColumnModel().getColumn(1)	.setHeaderRenderer(new HorizontalAlignmentHeaderRenderer(alinhamento));
-		
+		table.getColumnModel().getColumn(1).setHeaderRenderer(new HorizontalAlignmentHeaderRenderer(alinhamento));
+
 		// Nao vai reodernar os nomes e titulos do cabeçalho da tabela
 		table.getTableHeader().setReorderingAllowed(false);
 

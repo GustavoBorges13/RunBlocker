@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+
+import javax.swing.JOptionPane;
+
 import com.sun.jna.Native;
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.WinNT;
@@ -17,11 +20,7 @@ import static com.sun.jna.platform.win32.WinReg.HKEY_LOCAL_MACHINE;
 
 @SuppressWarnings("unused")
 public class GetWindowsProgramsBlocked {
-	public GetWindowsProgramsBlocked() throws IndexOutOfBoundsException {
-		// Conseguir o diretorio de um lugar
-		// System.out.println(Advapi32Util.registryGetStringValue(HKEY_LOCAL_MACHINE,
-		// "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\LeagueClient.exe",
-		// ""));
+	public GetWindowsProgramsBlocked(int flag) throws IndexOutOfBoundsException {
 		ManipuladorDeArquivo arquivo = new ManipuladorDeArquivo();
 
 		// Define o path padrao
@@ -29,10 +28,25 @@ public class GetWindowsProgramsBlocked {
 		// System.out.println(username);
 		String path = "C:\\Users\\" + username + "\\AppData\\Local\\Run Blocker\\";
 		String nomeDoArquivo = "ProgramsBlocked.txt";
-		try {
-			arquivo.leitor(path, nomeDoArquivo); // Cria o arquivo e salva os dados
-		} catch (IOException e1) {
-			e1.printStackTrace();
+
+		switch (flag) {
+		case 0:
+			try {
+				arquivo.leitor(path, nomeDoArquivo); // Cria o arquivo e salva os dados
+			} catch (IOException e1) {
+				JOptionPane.showMessageDialog(null, "Error when opening the locked programs file!\nError: " + e1);
+			}
+			break;
+
+		case 1:
+			try {
+				arquivo.escritor(path, nomeDoArquivo, InterfaceJframe.fileNameB, InterfaceJframe.filePathB); // Cria o arquivo e salva os dados
+			} catch (IOException e1) {
+				JOptionPane.showMessageDialog(null, "Error when opening the locked programs file!\nError: " + e1);
+			}
+			break;
+		default:
+
 		}
 	}
 }
