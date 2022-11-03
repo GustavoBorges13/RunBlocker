@@ -84,7 +84,7 @@ public class InterfaceJframe extends JFrame {
 	public void actions() {
 		// Manipulacao de arquivos - Criacao e leitura
 		int flag;
-
+		
 		// Cria um arquivo contendo os programas instalados
 		GetWindowsPrograms installedPrograms = new GetWindowsPrograms();
 
@@ -104,22 +104,71 @@ public class InterfaceJframe extends JFrame {
 		preencherTabelaProprietario(GetWindowsPrograms.fileName, GetWindowsPrograms.filePath, tableProgramsInstalled);
 		preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
 
-		// preencherTabelaProprietario(RegistryAction.fileName, RegistryAction.filePath,
-		// tableProgramsInstalled);
-		// Table Programs Installed actions
+		// Tabela programas instalados - Controle
 		tableProgramsInstalled.addMouseListener(new MouseAdapter() {
 			boolean isAlreadyOneClick;
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				// Habilita/desabilita botoes
 				btnBlock.setEnabled(true);
+				btnRemove.setEnabled(false);
 
 				if (isAlreadyOneClick) {
 					btnBlock.doClick();
 				} else {
 					isAlreadyOneClick = true;
 
-					// Habilitar o botao block
+					//Limpa as selecoes
+					tableProgramsBlocked.getSelectionModel().clearSelection();
+					//tableProgramsInstalled.setCellSelectionEnabled(true); // ALTERNATIVA QUE DA PRA LIMPAR TB
+					
+					// Se clicar duas vezes, mostrar janela de dialogo
+					Timer t = new Timer("doubleclickTimer", false);
+					t.schedule(new TimerTask() {
+
+						@Override
+						public void run() {
+							isAlreadyOneClick = false;
+						}
+					}, 300);
+				}
+			}
+			public void mousePressed(MouseEvent e) {
+				Timer t = new Timer("doubleclickTimer", false);
+				t.schedule(new TimerTask() {
+
+					@Override
+					public void run() {
+						//Limpa as selecoes
+						tableProgramsBlocked.getSelectionModel().clearSelection();
+						
+						// Habilita/desabilita botoes
+						btnBlock.setEnabled(true);
+						btnRemove.setEnabled(false);
+					}
+				}, 100);
+			}
+		});
+
+		// Tabela programas bloqueados - Controle
+		tableProgramsBlocked.addMouseListener(new MouseAdapter() {
+			boolean isAlreadyOneClick;
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				// Habilita/desabilita botoes
+				btnRemove.setEnabled(true);
+				btnBlock.setEnabled(false);
+
+				if (isAlreadyOneClick) {
+
+					System.out.println("Tabela block - OK");
+				} else {
+					isAlreadyOneClick = true;
+
+					//Limpa as selecoes
+					tableProgramsInstalled.getSelectionModel().clearSelection();
 
 					// Se clicar duas vezes, mostrar janela de dialogo
 					Timer t = new Timer("doubleclickTimer", false);
@@ -132,21 +181,29 @@ public class InterfaceJframe extends JFrame {
 					}, 300);
 				}
 			}
+			public void mousePressed(MouseEvent e) {
+				Timer t = new Timer("doubleclickTimer", false);
+				t.schedule(new TimerTask() {
+
+					@Override
+					public void run() {
+						//Limpa as selecoes
+						tableProgramsInstalled.getSelectionModel().clearSelection();
+						
+						// Habilita/desabilita botoes
+						btnRemove.setEnabled(true);
+						btnBlock.setEnabled(false);
+					}
+				}, 100);
+			}
 		});
 
-		// Block
+		// Block button
 		btnBlock.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int column = 0;
 				int row = tableProgramsInstalled.getSelectedRow();
 				boolean duplicated = false;
-
-				// Define o path padrao
-				String username = System.getProperty("user.name");
-
-				// System.out.println(username);
-				String path = "C:\\Users\\" + username + "\\AppData\\Local\\Run Blocker\\";
-				String nomeDoArquivo = "ProgramsBlocked.txt";
 
 				for (int i = 0; i < fileNameB.size(); i++) {
 					if (tableProgramsInstalled.getModel().getValueAt(row, column).toString() == fileNameB.get(i)) {
@@ -156,7 +213,7 @@ public class InterfaceJframe extends JFrame {
 						duplicated = false;
 					}
 				}
-				
+
 				if (duplicated == true) {
 					JOptionPane.showMessageDialog(null, "Operation cancelled! You have already blocked this program.");
 				} else {
@@ -168,24 +225,98 @@ public class InterfaceJframe extends JFrame {
 
 						fileNameB.add(tableProgramsInstalled.getModel().getValueAt(row, column).toString());
 						filePathB.add(tableProgramsInstalled.getModel().getValueAt(row, column + 1).toString());
+
+						// Atualiza a tabela
 						preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
+						
+						//Limpa as selecoes
+						tableProgramsBlocked.getSelectionModel().clearSelection();
+						tableProgramsInstalled.getSelectionModel().clearSelection();
+						
+						// Habilita/desabilita botoes
+						btnRemove.setEnabled(false);
+						btnBlock.setEnabled(false);
 
-						try {
-							int flag = 1;
-							GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked(flag);
-						} catch (Exception ex) {
-							JOptionPane.showMessageDialog(null,
-									"Error when opening the locked programs file!\\nError: " + ex);
-						}
-
+						//Tira a bug da borda de selecao da tabela...
+						//Faz que o programa foque no contentPane principal e nao volte na tabela.
+						contentPane.requestFocus();
+						
 					} else {
+						//Limpa as selecoes
+						tableProgramsBlocked.getSelectionModel().clearSelection();
 						tableProgramsInstalled.getSelectionModel().clearSelection();
 					}
 				}
 			}
 		});
 
-		// Add other application (.exe)
+		// Remove Button
+		btnRemove.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int column = 0;
+				int row = tableProgramsBlocked.getSelectedRow();
+				boolean duplicated = false;
+
+				if (JOptionPane.showConfirmDialog(null,
+						"Are you sure you want to remove the application:\n>"
+								+ tableProgramsBlocked.getModel().getValueAt(row, column).toString() + "\n"
+								+ tableProgramsBlocked.getModel().getValueAt(row, column + 1).toString(),
+						"WARNING", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+
+					for (int i = 0; i < fileNameB.size(); i++) {
+						if (tableProgramsBlocked.getModel().getValueAt(row, column).toString() == fileNameB.get(i)) {
+							fileNameB.remove(i);
+						}
+					}
+
+					// Atualiza a tabela
+					preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
+					
+					//Limpa as selecoes
+					tableProgramsBlocked.getSelectionModel().clearSelection();
+					tableProgramsInstalled.getSelectionModel().clearSelection();
+
+					// Habilita/desabilita botoes
+					btnRemove.setEnabled(false);
+					btnBlock.setEnabled(false);
+					
+					//Tira a bug da borda de selecao da tabela...
+					//Faz que o programa foque no contentPane principal e nao volte na tabela.
+					contentPane.requestFocus();
+					
+				} else {
+					//Limpa as selecoes
+					tableProgramsBlocked.getSelectionModel().clearSelection();
+					tableProgramsInstalled.getSelectionModel().clearSelection();
+				}
+
+			}
+		});
+
+		// Apply Button
+		btnApply.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+
+				if (JOptionPane.showConfirmDialog(null, "Are you sure you want to apply this setting?", "WARNING",
+						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+
+					// Atualiza o arquivo de Programas Bloqueados
+					try {
+						int flag = 1;
+						GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked(flag);
+					} catch (Exception ex) {
+						JOptionPane.showMessageDialog(null,
+								"Error when opening the locked programs file!\\nError: " + ex);
+					}
+				} else {
+					//Limpa as selecoes
+					tableProgramsBlocked.getSelectionModel().clearSelection();
+					tableProgramsInstalled.getSelectionModel().clearSelection();
+				}
+			}
+		});
+
+		// Add other application (.exe) Button
 		btnAdd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc = new JFileChooser();
@@ -399,6 +530,7 @@ public class InterfaceJframe extends JFrame {
 
 		// Tabela
 		tableProgramsInstalled = new JTable();
+		tableProgramsInstalled.setAutoscrolls(false);
 		tableProgramsInstalled.setForeground(Color.DARK_GRAY);
 		tableProgramsInstalled.setBackground(Color.WHITE);
 		tableProgramsInstalled.setVisible(true);
@@ -422,6 +554,7 @@ public class InterfaceJframe extends JFrame {
 
 		// Tabela
 		tableProgramsBlocked = new JTable();
+		tableProgramsBlocked.setAutoscrolls(false);
 		tableProgramsBlocked.setForeground(Color.DARK_GRAY);
 		tableProgramsBlocked.setBackground(Color.WHITE);
 		tableProgramsBlocked.setVisible(true);
@@ -447,7 +580,7 @@ public class InterfaceJframe extends JFrame {
 		btnBlock.setBounds(248, 8, 78, 22);
 		panelButtonsActions.add(btnBlock);
 
-		JButton btnApply = new JButton("Apply");
+		btnApply = new JButton("Apply");
 		btnApply.setEnabled(true);
 		btnApply.setBounds(604, 8, 84, 22);
 		panelButtonsActions.add(btnApply);
