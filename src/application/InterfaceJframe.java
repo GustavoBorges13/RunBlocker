@@ -7,6 +7,7 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Timer;
@@ -84,7 +85,7 @@ public class InterfaceJframe extends JFrame {
 	public void actions() {
 		// Manipulacao de arquivos - Criacao e leitura
 		int flag;
-		
+
 		// Cria um arquivo contendo os programas instalados
 		GetWindowsPrograms installedPrograms = new GetWindowsPrograms();
 
@@ -119,10 +120,11 @@ public class InterfaceJframe extends JFrame {
 				} else {
 					isAlreadyOneClick = true;
 
-					//Limpa as selecoes
+					// Limpa as selecoes
 					tableProgramsBlocked.getSelectionModel().clearSelection();
-					//tableProgramsInstalled.setCellSelectionEnabled(true); // ALTERNATIVA QUE DA PRA LIMPAR TB
-					
+					// tableProgramsInstalled.setCellSelectionEnabled(true); // ALTERNATIVA QUE DA
+					// PRA LIMPAR TB
+
 					// Se clicar duas vezes, mostrar janela de dialogo
 					Timer t = new Timer("doubleclickTimer", false);
 					t.schedule(new TimerTask() {
@@ -134,15 +136,16 @@ public class InterfaceJframe extends JFrame {
 					}, 300);
 				}
 			}
+
 			public void mousePressed(MouseEvent e) {
 				Timer t = new Timer("doubleclickTimer", false);
 				t.schedule(new TimerTask() {
 
 					@Override
 					public void run() {
-						//Limpa as selecoes
+						// Limpa as selecoes
 						tableProgramsBlocked.getSelectionModel().clearSelection();
-						
+
 						// Habilita/desabilita botoes
 						btnBlock.setEnabled(true);
 						btnRemove.setEnabled(false);
@@ -167,7 +170,7 @@ public class InterfaceJframe extends JFrame {
 				} else {
 					isAlreadyOneClick = true;
 
-					//Limpa as selecoes
+					// Limpa as selecoes
 					tableProgramsInstalled.getSelectionModel().clearSelection();
 
 					// Se clicar duas vezes, mostrar janela de dialogo
@@ -181,15 +184,16 @@ public class InterfaceJframe extends JFrame {
 					}, 300);
 				}
 			}
+
 			public void mousePressed(MouseEvent e) {
 				Timer t = new Timer("doubleclickTimer", false);
 				t.schedule(new TimerTask() {
 
 					@Override
 					public void run() {
-						//Limpa as selecoes
+						// Limpa as selecoes
 						tableProgramsInstalled.getSelectionModel().clearSelection();
-						
+
 						// Habilita/desabilita botoes
 						btnRemove.setEnabled(true);
 						btnBlock.setEnabled(false);
@@ -228,21 +232,22 @@ public class InterfaceJframe extends JFrame {
 
 						// Atualiza a tabela
 						preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
-						
-						//Limpa as selecoes
+
+						// Limpa as selecoes
 						tableProgramsBlocked.getSelectionModel().clearSelection();
 						tableProgramsInstalled.getSelectionModel().clearSelection();
-						
+
 						// Habilita/desabilita botoes
 						btnRemove.setEnabled(false);
 						btnBlock.setEnabled(false);
+						btnApply.setEnabled(true); // Flag pra ativar o botao APPLY - Alteracoes recentes...
 
-						//Tira a bug da borda de selecao da tabela...
-						//Faz que o programa foque no contentPane principal e nao volte na tabela.
+						// Tira a bug da borda de selecao da tabela...
+						// Faz que o programa foque no contentPane principal e nao volte na tabela.
 						contentPane.requestFocus();
-						
+
 					} else {
-						//Limpa as selecoes
+						// Limpa as selecoes
 						tableProgramsBlocked.getSelectionModel().clearSelection();
 						tableProgramsInstalled.getSelectionModel().clearSelection();
 					}
@@ -271,21 +276,22 @@ public class InterfaceJframe extends JFrame {
 
 					// Atualiza a tabela
 					preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
-					
-					//Limpa as selecoes
+
+					// Limpa as selecoes
 					tableProgramsBlocked.getSelectionModel().clearSelection();
 					tableProgramsInstalled.getSelectionModel().clearSelection();
 
 					// Habilita/desabilita botoes
 					btnRemove.setEnabled(false);
 					btnBlock.setEnabled(false);
-					
-					//Tira a bug da borda de selecao da tabela...
-					//Faz que o programa foque no contentPane principal e nao volte na tabela.
+					btnApply.setEnabled(true);
+
+					// Tira a bug da borda de selecao da tabela...
+					// Faz que o programa foque no contentPane principal e nao volte na tabela.
 					contentPane.requestFocus();
-					
+
 				} else {
-					//Limpa as selecoes
+					// Limpa as selecoes
 					tableProgramsBlocked.getSelectionModel().clearSelection();
 					tableProgramsInstalled.getSelectionModel().clearSelection();
 				}
@@ -304,12 +310,18 @@ public class InterfaceJframe extends JFrame {
 					try {
 						int flag = 1;
 						GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked(flag);
+						JOptionPane.showConfirmDialog(null, "The settings have been applied successfully!", "Success",
+								JOptionPane.DEFAULT_OPTION);
+
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog(null,
 								"Error when opening the locked programs file!\\nError: " + ex);
 					}
+
+					btnApply.setEnabled(false); // Flag pra ativar o botao APPLY - Alteracoes recentes...
+
 				} else {
-					//Limpa as selecoes
+					// Limpa as selecoes
 					tableProgramsBlocked.getSelectionModel().clearSelection();
 					tableProgramsInstalled.getSelectionModel().clearSelection();
 				}
@@ -319,26 +331,70 @@ public class InterfaceJframe extends JFrame {
 		// Add other application (.exe) Button
 		btnAdd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fc = new JFileChooser();
+				boolean duplicated = false;
+
+				// Carrega a janela no modo de leitura
+				Boolean old = UIManager.getBoolean("FileChooser.readOnly");
+				UIManager.put("FileChooser.readOnly", Boolean.TRUE);
+				JFileChooser fc = new JFileChooser("C:\\"); // "." = diretorio do programa
+				UIManager.put("FileChooser.readOnly", old);
 
 				// Restringir o usuário para selecionar arquivos de todos os tipos
-				fc.setAcceptAllFileFilterUsed(false);
+				fc.setAcceptAllFileFilterUsed(true);
 
 				// Coloca um titulo para a janela de dialogo
-				fc.setDialogTitle("Selecione um arquivo .txt");
+				fc.setDialogTitle("Selecione um arquivo .exe");
 
 				// Habilita para o user escolher apenas arquivos do tipo: txt
-				FileNameExtensionFilter restrict = new FileNameExtensionFilter("Somente arquivos .txt", "txt");
+				FileNameExtensionFilter restrict = new FileNameExtensionFilter("Somente arquivos .exe", "exe");
 				fc.addChoosableFileFilter(restrict);
+
+				// Abre a janela com foco no .exe
+				fc.setFileFilter(restrict);
 
 				// Invocar a função showOpenDialog para mostrar a janela de selecao de arquivos
 				// Binario -> 0 = arquivo selecionado.
 				int r = fc.showOpenDialog(null);
 
-				// System.out.println(r); //debug
-
 				if (r == JFileChooser.APPROVE_OPTION) {
+					for (int i = 0; i < fileNameB.size(); i++) {
+						if (fileNameB.get(i).equals(fc.getSelectedFile().getName())) {
+							duplicated = true;
+							break;
+						} else {
+							duplicated = false;
+						}
+					}
 
+					if (duplicated == true) {
+						JOptionPane.showMessageDialog(null,
+								"Operation cancelled! You have already blocked this program.");
+					} else {
+
+						// Adiciona os dados do arquivo selecionado na nossa lista
+						fileNameB.add(fc.getSelectedFile().getName() + "");
+						filePathB.add(fc.getSelectedFile() + "");
+
+						// Atualiza a tabela
+						preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
+
+						// Limpa as selecoes
+						tableProgramsBlocked.getSelectionModel().clearSelection();
+						tableProgramsInstalled.getSelectionModel().clearSelection();
+
+						// Habilita/desabilita botoes
+						btnRemove.setEnabled(false);
+						btnBlock.setEnabled(false);
+						btnApply.setEnabled(true);
+
+						// Tira a bug da borda de selecao da tabela...
+						// Faz que o programa foque no contentPane principal e nao volte na tabela.
+						contentPane.requestFocus();
+
+						// Limpa as selecoes
+						tableProgramsBlocked.getSelectionModel().clearSelection();
+						tableProgramsInstalled.getSelectionModel().clearSelection();
+					}
 				}
 			}
 		});
@@ -567,22 +623,22 @@ public class InterfaceJframe extends JFrame {
 
 		btnAdd = new JButton("Add other application (.exe)");
 
-		btnAdd.setBounds(44, 8, 192, 22);
+		btnAdd.setBounds(405, 8, 192, 22);
 		panelButtonsActions.add(btnAdd);
 
 		btnRemove = new JButton("Remove");
 		btnRemove.setEnabled(false);
-		btnRemove.setBounds(508, 8, 84, 22);
+		btnRemove.setBounds(606, 8, 84, 22);
 		panelButtonsActions.add(btnRemove);
 
 		btnBlock = new JButton("Block");
 		btnBlock.setEnabled(false);
-		btnBlock.setBounds(248, 8, 78, 22);
+		btnBlock.setBounds(150, 8, 78, 22);
 		panelButtonsActions.add(btnBlock);
 
 		btnApply = new JButton("Apply");
-		btnApply.setEnabled(true);
-		btnApply.setBounds(604, 8, 84, 22);
+		btnApply.setEnabled(false);
+		btnApply.setBounds(699, 8, 84, 22);
 		panelButtonsActions.add(btnApply);
 
 	}
