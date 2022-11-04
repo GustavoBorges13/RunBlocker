@@ -1,7 +1,7 @@
 ```diff
 - Em desenvolvimento!
-+ Atualização 1.3
-# First Project
++ Atualização 1.4
+# First SOLO Project
 ```
 # RunBlocker
  Esté é um Programa que bloqueia algum executavel ou algum programa instalado na sua maquina, sendo assim, utilizei algumas bibliotecas explicadas abaixo para a manipulação do mesmo e levantamento de dados, no qual é criado um arquivo na pasta: C:\Users\username\AppData\Local\Run Blocker\Teste.txt.
