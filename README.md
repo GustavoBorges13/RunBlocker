@@ -1,5 +1,5 @@
 # Run Blocker
-[![NPM](https://img.shields.io/npm/l/react)](GustavoBorges13/ProgramBlock/blob/main/LICENSE) 
+[![NPM](https://img.shields.io/npm/l/react)](https://github.com/GustavoBorges13/RunBlocker/blob/main/LICENSE) 
 ```diff
 - Em desenvolvimento!
 + Atualização 1.5
