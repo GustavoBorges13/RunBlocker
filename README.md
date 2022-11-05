@@ -1,5 +1,9 @@
 # Run Blocker
 [![NPM](https://img.shields.io/npm/l/react)](https://github.com/GustavoBorges13/RunBlocker/blob/main/LICENSE) 
+[![Latest Stable Version](https://img.shields.io/packagist/v/GustavoBorges13/RunBlocker?label=version)](https://packagist.org/packages/GustavoBorges13/RunBlocker)
+[![Release date](https://img.shields.io/github/release-date/GustavoBorges13/RunBlocker)](https://packagist.org/packages/GustavoBorges13/RunBlocker)
+
+
 ```diff
 - Em desenvolvimento!
 + Atualização 1.5
