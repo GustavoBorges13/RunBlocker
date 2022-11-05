@@ -6,7 +6,7 @@
 
 ```diff
 - Em desenvolvimento!
-+ Atualização 1.5
++ Atualização v1.5.0
 # First SOLO Project
 ```
 # Sobre o projeto
