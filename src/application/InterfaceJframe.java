@@ -270,7 +270,7 @@ public class InterfaceJframe extends JFrame {
 
 					for (int i = 0; i < fileNameB.size(); i++) {
 						if (tableProgramsBlocked.getModel().getValueAt(row, column).toString() == fileNameB.get(i)) {
-							fileNameB.remove(i);
+							fileNameB.remove(i); filePathB.remove(i);
 						}
 					}
 
