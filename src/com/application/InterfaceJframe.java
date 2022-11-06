@@ -1,4 +1,4 @@
-package application;
+package com.application;
 
 import samples.Test;
 import java.awt.Color;

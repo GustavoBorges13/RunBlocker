@@ -1,4 +1,4 @@
-package application;
+package com.application;
 
 import static com.sun.jna.platform.win32.WinReg.HKEY_LOCAL_MACHINE;
 import com.sun.jna.platform.win32.Advapi32Util;

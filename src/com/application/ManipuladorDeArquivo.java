@@ -1,4 +1,4 @@
-package application;
+package com.application;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
