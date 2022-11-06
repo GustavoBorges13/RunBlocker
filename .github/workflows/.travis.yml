@@ -2,11 +2,9 @@ language: java
 jdk:
   - oraclejdk8
 
-install: true
+script: "mvn -f .releng/pom.xml install"
 
 env:
   global:
     - JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
     - PATH=/usr/lib/jvm/java-8-openjdk-amd64/bin:$PATH
-    
-script: mvn -DskipTests=true clean verify
