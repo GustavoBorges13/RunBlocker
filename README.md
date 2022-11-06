@@ -6,7 +6,7 @@
 
 ```diff
 - Em desenvolvimento!
-+ Atualização v1.5.0
+Autor: Gustavo Borges Peres da Silva
 # First SOLO Project
 ```
 # Sobre o projeto
