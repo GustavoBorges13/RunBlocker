@@ -2,7 +2,7 @@
 [![NPM](https://img.shields.io/npm/l/react)](https://github.com/GustavoBorges13/RunBlocker/blob/main/LICENSE) 
 [![Latest Stable Version](https://img.shields.io/badge/Version-v1.5.0-blue)](https://github.com/GustavoBorges13/RunBlocker/releases)
 [![Release date](https://img.shields.io/github/release-date/GustavoBorges13/RunBlocker)](https://packagist.org/packages/GustavoBorges13/RunBlocker)
-
+[![Build Status](https://app.travis-ci.com/GustavoBorges13/RunBlocker.svg?branch=main)](https://app.travis-ci.com/GustavoBorges13/RunBlocker)
 
 ```diff
 - Em desenvolvimento!
