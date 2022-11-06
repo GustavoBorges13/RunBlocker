@@ -6,7 +6,7 @@
 
 ```diff
 - Em desenvolvimento!
-Autor: Gustavo Borges Peres da Silva
++ Autor: Gustavo Borges Peres da Silva
 # First SOLO Project
 ```
 # Sobre o projeto
