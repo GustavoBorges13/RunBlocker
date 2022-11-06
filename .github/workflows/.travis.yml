@@ -2,7 +2,7 @@ language: java
 jdk:
   - oraclejdk8
 
-script: ant build\
+script: "mvn -f .releng/pom.xml install"
 
 env:
   global:
