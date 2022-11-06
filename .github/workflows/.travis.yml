@@ -1,4 +1,4 @@
-language: ruby
-rvm:
- - 2.2
- - jruby
+.travis.yml
+language: node_js
+node_js:
+  - "stable"
