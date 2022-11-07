@@ -211,7 +211,7 @@ public class InterfaceJframe extends JFrame {
 				boolean duplicated = false;
 
 				for (int i = 0; i < fileNameB.size(); i++) {
-					if (tableProgramsInstalled.getModel().getValueAt(row, column).equals(fileNameB.get(i)+"")) {
+					if (tableProgramsInstalled.getModel().getValueAt(row, column).equals(fileNameB.get(i) + "")) {
 						duplicated = true;
 						break;
 					} else {
@@ -272,7 +272,7 @@ public class InterfaceJframe extends JFrame {
 
 					// Atualiza a tabela
 					preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
-					
+
 					for (int i = 0; i < fileNameB.size(); i++) {
 						if (tableProgramsBlocked.getModel().getValueAt(row, column).toString() == fileNameB.get(i)) {
 							fileNameB.remove(i);
@@ -374,6 +374,7 @@ public class InterfaceJframe extends JFrame {
 				int r = fc.showOpenDialog(null);
 
 				if (r == JFileChooser.APPROVE_OPTION) {
+					System.out.println(fc.getSelectedFile().getName());
 					for (int i = 0; i < fileNameB.size(); i++) {
 						if (fileNameB.get(i).equals(fc.getSelectedFile().getName())) {
 							duplicated = true;
@@ -388,29 +389,35 @@ public class InterfaceJframe extends JFrame {
 								"Operation cancelled! You have already blocked this program.");
 					} else {
 
-						// Adiciona os dados do arquivo selecionado na nossa lista
-						fileNameB.add(fc.getSelectedFile().getName() + "");
-						filePathB.add(fc.getSelectedFile() + "");
+						if (JOptionPane.showConfirmDialog(null,
+								"Are you sure you want to block the program:\n>" + fc.getSelectedFile().getName() + "\n"
+										+ fc.getSelectedFile().toString(),
+								"WARNING", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
-						// Atualiza a tabela
-						preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
+							fileNameB.add(fc.getSelectedFile().getName());
+							filePathB.add(fc.getSelectedFile().toString());
+							
+							// Atualiza a tabela
+							preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
 
-						// Limpa as selecoes
-						tableProgramsBlocked.getSelectionModel().clearSelection();
-						tableProgramsInstalled.getSelectionModel().clearSelection();
+							// Limpa as selecoes
+							tableProgramsBlocked.getSelectionModel().clearSelection();
+							tableProgramsInstalled.getSelectionModel().clearSelection();
 
-						// Habilita/desabilita botoes
-						btnRemove.setEnabled(false);
-						btnBlock.setEnabled(false);
-						btnApply.setEnabled(true);
+							// Habilita/desabilita botoes
+							btnRemove.setEnabled(false);
+							btnBlock.setEnabled(false);
+							btnApply.setEnabled(true); // Flag pra ativar o botao APPLY - Alteracoes recentes...
 
-						// Tira a bug da borda de selecao da tabela...
-						// Faz que o programa foque no contentPane principal e nao volte na tabela.
-						contentPane.requestFocus();
+							// Tira a bug da borda de selecao da tabela...
+							// Faz que o programa foque no contentPane principal e nao volte na tabela.
+							contentPane.requestFocus();
 
-						// Limpa as selecoes
-						tableProgramsBlocked.getSelectionModel().clearSelection();
-						tableProgramsInstalled.getSelectionModel().clearSelection();
+						} else {
+							// Limpa as selecoes
+							tableProgramsBlocked.getSelectionModel().clearSelection();
+							tableProgramsInstalled.getSelectionModel().clearSelection();
+						}
 					}
 				}
 			}
