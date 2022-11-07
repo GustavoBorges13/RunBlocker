@@ -3,6 +3,8 @@
 package com.application;
 
 import samples.Test;
+import static com.sun.jna.platform.win32.WinReg.HKEY_CURRENT_USER;
+import static com.sun.jna.platform.win32.WinReg.HKEY_LOCAL_MACHINE;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
@@ -12,9 +14,9 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -35,6 +37,9 @@ import javax.swing.plaf.basic.BasicMenuUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.Win32Exception;
+
 import javax.swing.border.EtchedBorder;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -79,7 +84,6 @@ public class InterfaceJframe extends JFrame {
 
 	public InterfaceJframe() {
 		windowConfigurations();
-
 		actions();
 
 	}
@@ -88,6 +92,34 @@ public class InterfaceJframe extends JFrame {
 		// Manipulacao de arquivos - Criacao e leitura
 		int flag;
 
+		
+		
+        //Faz um mapeamento das chaves com seus respectivos valores
+        Map <String, Object>values;
+        try {
+			values = Advapi32Util.registryGetValues(HKEY_CURRENT_USER,
+					"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
+			//Printa somente o nome do dado ao inves de printar os seus valores
+	        for (Object value : values.values()) {
+
+	            System.out.println(value);
+
+	        }
+		} catch (Win32Exception e) {
+			System.out.println(e);
+		} finally {
+			//Cria as chaves necessarias para bloquear os programas - Explorer - DisallowRun
+			 Advapi32Util.registryCreateKey(HKEY_CURRENT_USER, 
+					 "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun"); 
+		}
+		
+        
+        /*
+        System.out.println(values.keySet());
+        System.out.println(values.values());*/
+        
+        
+        
 		// Cria um arquivo contendo os programas instalados
 		GetWindowsPrograms installedPrograms = new GetWindowsPrograms();
 
@@ -308,7 +340,7 @@ public class InterfaceJframe extends JFrame {
 				if (JOptionPane.showConfirmDialog(null, "Are you sure you want to apply this setting?", "WARNING",
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
-					// Atualiza o arquivo de Programas Bloqueados
+					// Atualiza o banco de dados salvando no arquivo de Programas Bloqueados
 					try {
 						int flag = 1;
 						GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked(flag);
@@ -320,8 +352,12 @@ public class InterfaceJframe extends JFrame {
 								"Error when opening the locked programs file!\\nError: " + ex);
 					}
 
-					btnApply.setEnabled(false); // Flag pra ativar o botao APPLY - Alteracoes recentes...
+					//Ativar/Desativar botoes
+					btnApply.setEnabled(false); //
 
+					//Registro do Windows - Adicionando os programas bloqueados nas chaves do registro do windows.
+					
+					
 				} else {
 					// Limpa as selecoes
 					tableProgramsBlocked.getSelectionModel().clearSelection();
