@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -37,6 +38,8 @@ import javax.swing.plaf.basic.BasicMenuUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
+
+import com.sun.jna.platform.WindowUtils;
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.Win32Exception;
 
@@ -77,8 +80,8 @@ public class InterfaceJframe extends JFrame {
 	private JButton btnAdd;
 
 	// Lista de programas bloqueados
-	private ArrayList<String> fileName = new ArrayList<String>();
-	private ArrayList<String> filePath = new ArrayList<String>();
+	static ArrayList<String> fileName = new ArrayList<String>();
+	static ArrayList<String> filePath = new ArrayList<String>();
 	static ArrayList<String> fileNameB = new ArrayList<String>();
 	static ArrayList<String> filePathB = new ArrayList<String>();
 
@@ -91,49 +94,13 @@ public class InterfaceJframe extends JFrame {
 	public void actions() {
 		// Manipulacao de arquivos - Criacao e leitura
 		int flag;
+		String DisallowRunPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun";
 
-		
-		
-        //Faz um mapeamento das chaves com seus respectivos valores
-        Map <String, Object>values;
-        try {
-			values = Advapi32Util.registryGetValues(HKEY_CURRENT_USER,
-					"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
-			//Printa somente o nome do dado ao inves de printar os seus valores
-	        for (Object value : values.values()) {
-
-	            System.out.println(value);
-
-	        }
-		} catch (Win32Exception e) {
-			System.out.println(e);
-		} finally {
-			//Cria as chaves necessarias para bloquear os programas - Explorer - DisallowRun
-			 Advapi32Util.registryCreateKey(HKEY_CURRENT_USER, 
-					 "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun"); 
-		}
-		
-        
-        /*
-        System.out.println(values.keySet());
-        System.out.println(values.values());*/
-        
-        
-        
-		// Cria um arquivo contendo os programas instalados
+		// Cria/Lê um arquivo contendo os programas instalados
 		GetWindowsPrograms installedPrograms = new GetWindowsPrograms();
 
-		// Verifica se ja existe algum arquivo dos programas bloqueados, caso contrario
-		// ele cria um novo
-		try {
-			flag = 0;
-			GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked(flag);
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(null, "Error when opening the locked programs file!\\nError: " + e);
-		} finally {
-			flag = 1;
-			GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked(flag);
-		}
+		// Cria/Lê um arquivo contedo os programas bloqueados
+		GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked();
 
 		// Preenchimento das tabelas com os dados obtidos
 		preencherTabelaProprietario(GetWindowsPrograms.fileName, GetWindowsPrograms.filePath, tableProgramsInstalled);
@@ -244,7 +211,7 @@ public class InterfaceJframe extends JFrame {
 				boolean duplicated = false;
 
 				for (int i = 0; i < fileNameB.size(); i++) {
-					if (tableProgramsInstalled.getModel().getValueAt(row, column).toString() == fileNameB.get(i)) {
+					if (tableProgramsInstalled.getModel().getValueAt(row, column).equals(fileNameB.get(i)+"")) {
 						duplicated = true;
 						break;
 					} else {
@@ -261,6 +228,7 @@ public class InterfaceJframe extends JFrame {
 									+ tableProgramsInstalled.getModel().getValueAt(row, column + 1).toString(),
 							"WARNING", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
+						// Adiciona os valores selecionados da tabela para a lista
 						fileNameB.add(tableProgramsInstalled.getModel().getValueAt(row, column).toString());
 						filePathB.add(tableProgramsInstalled.getModel().getValueAt(row, column + 1).toString());
 
@@ -302,9 +270,13 @@ public class InterfaceJframe extends JFrame {
 								+ tableProgramsBlocked.getModel().getValueAt(row, column + 1).toString(),
 						"WARNING", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
+					// Atualiza a tabela
+					preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
+					
 					for (int i = 0; i < fileNameB.size(); i++) {
 						if (tableProgramsBlocked.getModel().getValueAt(row, column).toString() == fileNameB.get(i)) {
-							fileNameB.remove(i); filePathB.remove(i);
+							fileNameB.remove(i);
+							filePathB.remove(i);
 						}
 					}
 
@@ -340,24 +312,31 @@ public class InterfaceJframe extends JFrame {
 				if (JOptionPane.showConfirmDialog(null, "Are you sure you want to apply this setting?", "WARNING",
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
-					// Atualiza o banco de dados salvando no arquivo de Programas Bloqueados
-					try {
-						int flag = 1;
-						GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked(flag);
-						JOptionPane.showConfirmDialog(null, "The settings have been applied successfully!", "Success",
-								JOptionPane.DEFAULT_OPTION);
+					// Registro do Windows - Clear dos programas bloqueados
+					for (int i = 0; i < fileNameB.size(); i++) {
+						// Reseta a Key DisallowRun
+						Advapi32Util.registryDeleteKey(HKEY_CURRENT_USER,
+								"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
+						Advapi32Util.registryCreateKey(HKEY_CURRENT_USER,
+								"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
 
-					} catch (Exception ex) {
-						JOptionPane.showMessageDialog(null,
-								"Error when opening the locked programs file!\\nError: " + ex);
 					}
 
-					//Ativar/Desativar botoes
-					btnApply.setEnabled(false); //
+					// Registro do Windows - Adicionando os programas bloqueados nas chaves do
+					// registro do windows.
+					for (int i = 0; i < fileNameB.size(); i++) {
+						// Atribui o valor DisallowRun na chave Explorer
+						Advapi32Util.registrySetStringValue(HKEY_CURRENT_USER,
+								"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun",
+								(i + 1) + "", fileNameB.get(i) + "");
+					}
 
-					//Registro do Windows - Adicionando os programas bloqueados nas chaves do registro do windows.
-					
-					
+					// Atualiza o banco de dados salvando no arquivo de Programas Bloqueados
+					GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked();
+
+					// Ativar/Desativar botoes
+					btnApply.setEnabled(false);
+
 				} else {
 					// Limpa as selecoes
 					tableProgramsBlocked.getSelectionModel().clearSelection();

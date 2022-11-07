@@ -69,8 +69,10 @@ public class GetWindowsPrograms {
 		// Define o path padrao
 		String username = System.getProperty("user.name");
 		// System.out.println(username);
-		String path = "C:\\Users\\" + username + "\\AppData\\Local\\Run Blocker\\";
+		//String path = "C:\\Users\\" + username + "\\AppData\\Local\\Run Blocker\\";
+		String path = ".\\data\\";
 		String nomeDoArquivo = "ProgramsInstalled.txt";
+		
 		try {
 			arquivo.escritor(path, nomeDoArquivo, fileName, filePath); // Cria o arquivo e salva os dados
 		} catch (IOException e1) {
