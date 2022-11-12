@@ -16,7 +16,7 @@ import javax.swing.JOptionPane;
 @SuppressWarnings("unused")
 public class ManipuladorDeArquivo {
 	public void leitor(String path, String nomeDoArquivo) throws IOException {
-		try (BufferedReader buffRead = new BufferedReader(new FileReader(path+nomeDoArquivo))) {
+		try (BufferedReader buffRead = new BufferedReader(new FileReader(path + nomeDoArquivo))) {
 			String[] split;// Vetor de separacao de cada conteudo na linha
 
 			// - - - Lendo o arquivo...
@@ -25,33 +25,45 @@ public class ManipuladorDeArquivo {
 				while (linha != null) {
 
 					split = linha.split(" - "); // Separa o nome do path
-				
-					InterfaceJframe.fileNameB.add(split[0]); // Salva a leitura do nome do aluno para um vetor.
-					InterfaceJframe.filePathB.add(split[1]); // Salva a leitura do path para uma lista.
-					
+
+					InterfaceJframe.fileNameB.add(split[0]); // Salva a leitura do nome do arquivo na lista de file names.
+					InterfaceJframe.filePathB.add(split[1]); // Salva a leitura do path para na lista de paths dir.
+
 					linha = buffRead.readLine(); // Linha p/ linha
 				}
 			} catch (ArrayIndexOutOfBoundsException e) {
 				e.printStackTrace();
-
-				System.out.println(
-						"Ja foram lidos todas as linhas... o programa desconsiderou o que existe depois das ultimas palavras...");
-			}		
+			}
 			buffRead.close();
 		} catch (IOException e) {
 			System.out.println("Error: " + e.getMessage());
 		}
 	}
 
-	public void escritor(String path, String nomeDoArquivo, ArrayList<String> fileName, ArrayList<String> filePath) throws IOException {
-		File file = new File(path+nomeDoArquivo);
+	public void escritor(String path, String nomeDoArquivo, ArrayList<String> fileName, ArrayList<String> filePath)
+			throws IOException {
+		File file = new File(path + nomeDoArquivo);
 		file.getParentFile().mkdirs();
 		FileWriter writer = new FileWriter(file);
-		
+
 		for (int i = 0; i < fileName.size(); i++) {
-			writer.write(fileName.get(i)+" - "+filePath.get(i)+"\n");
+			writer.write(fileName.get(i) + " - " + filePath.get(i) + "\n");
 		}
-		
+
 		writer.close();
+	}
+
+	public void escritorv2(String path, String nomeDoArquivo, String fileName, String filePath) throws IOException {
+		File file = new File(path + nomeDoArquivo);
+		file.getParentFile().mkdirs();
+		FileWriter writer = new FileWriter(file, true);
+
+		try {
+			BufferedWriter buffwriter = new BufferedWriter(writer);
+			buffwriter.write(fileName + " - " + filePath + "\n");
+			buffwriter.close();
+		} catch (IOException ex) {
+			System.out.println("File could not be created");
+		}
 	}
 }

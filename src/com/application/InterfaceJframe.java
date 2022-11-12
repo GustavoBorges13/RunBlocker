@@ -95,6 +95,7 @@ public class InterfaceJframe extends JFrame {
 		// Manipulacao de arquivos - Criacao e leitura
 		int flag;
 		String DisallowRunPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun";
+		ManipuladorDeArquivo arquivo = new ManipuladorDeArquivo();
 
 		// Cria/Lê um arquivo contendo os programas instalados
 		GetWindowsPrograms installedPrograms = new GetWindowsPrograms();
@@ -123,9 +124,8 @@ public class InterfaceJframe extends JFrame {
 
 					// Limpa as selecoes
 					tableProgramsBlocked.getSelectionModel().clearSelection();
-					// tableProgramsInstalled.setCellSelectionEnabled(true); // ALTERNATIVA QUE DA
-					// PRA LIMPAR TB
-
+					// tableProgramsInstalled.setCellSelectionEnabled(true); // ALTERNATIVA QUE DA PRA LIMPAR TB
+					
 					// Se clicar duas vezes, mostrar janela de dialogo
 					Timer t = new Timer("doubleclickTimer", false);
 					t.schedule(new TimerTask() {
@@ -252,6 +252,13 @@ public class InterfaceJframe extends JFrame {
 						// Limpa as selecoes
 						tableProgramsBlocked.getSelectionModel().clearSelection();
 						tableProgramsInstalled.getSelectionModel().clearSelection();
+						
+						// Habilita/desabilita botoes
+						btnRemove.setEnabled(false);
+						btnBlock.setEnabled(false);
+						btnApply.setEnabled(false); // Flag pra ativar o botao APPLY - Alteracoes recentes...
+
+						contentPane.requestFocus();
 					}
 				}
 			}
@@ -269,9 +276,6 @@ public class InterfaceJframe extends JFrame {
 								+ tableProgramsBlocked.getModel().getValueAt(row, column).toString() + "\n"
 								+ tableProgramsBlocked.getModel().getValueAt(row, column + 1).toString(),
 						"WARNING", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-
-					// Atualiza a tabela
-					preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
 
 					for (int i = 0; i < fileNameB.size(); i++) {
 						if (tableProgramsBlocked.getModel().getValueAt(row, column).toString() == fileNameB.get(i)) {
@@ -300,6 +304,13 @@ public class InterfaceJframe extends JFrame {
 					// Limpa as selecoes
 					tableProgramsBlocked.getSelectionModel().clearSelection();
 					tableProgramsInstalled.getSelectionModel().clearSelection();
+					
+					// Habilita/desabilita botoes
+					btnRemove.setEnabled(false);
+					btnBlock.setEnabled(false);
+					btnApply.setEnabled(false);
+					
+					contentPane.requestFocus();
 				}
 
 			}
@@ -311,9 +322,8 @@ public class InterfaceJframe extends JFrame {
 
 				if (JOptionPane.showConfirmDialog(null, "Are you sure you want to apply this setting?", "WARNING",
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-
 					// Registro do Windows - Clear dos programas bloqueados
-					for (int i = 0; i < fileNameB.size(); i++) {
+					for (int i = -1; i < fileNameB.size(); i++) {
 						// Reseta a Key DisallowRun
 						Advapi32Util.registryDeleteKey(HKEY_CURRENT_USER,
 								"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
@@ -322,8 +332,7 @@ public class InterfaceJframe extends JFrame {
 
 					}
 
-					// Registro do Windows - Adicionando os programas bloqueados nas chaves do
-					// registro do windows.
+					// Registro do Windows - Adicionando os programas bloqueados nas chaves do registro do windows.
 					for (int i = 0; i < fileNameB.size(); i++) {
 						// Atribui o valor DisallowRun na chave Explorer
 						Advapi32Util.registrySetStringValue(HKEY_CURRENT_USER,
@@ -332,6 +341,7 @@ public class InterfaceJframe extends JFrame {
 					}
 
 					// Atualiza o banco de dados salvando no arquivo de Programas Bloqueados
+					GetWindowsPrograms installedPrograms = new GetWindowsPrograms();
 					GetWindowsProgramsBlocked blockedPrograms = new GetWindowsProgramsBlocked();
 
 					// Ativar/Desativar botoes
@@ -341,6 +351,11 @@ public class InterfaceJframe extends JFrame {
 					// Limpa as selecoes
 					tableProgramsBlocked.getSelectionModel().clearSelection();
 					tableProgramsInstalled.getSelectionModel().clearSelection();
+					
+					// Ativar/Desativar botoes
+					btnApply.setEnabled(false);
+					
+					contentPane.requestFocus();
 				}
 			}
 		});
@@ -348,7 +363,15 @@ public class InterfaceJframe extends JFrame {
 		// Add other application (.exe) Button
 		btnAdd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				boolean duplicated = false;
+				// Criando um arquivo de arquivos adicionados externalmente
+				ManipuladorDeArquivo arquivo = new ManipuladorDeArquivo();
+
+				// Define o path padrao
+				String username = System.getProperty("user.name");
+
+				// String path = "C:\\Users\\" + username + "\\AppData\\Local\\Run Blocker\\";
+				String path = ".\\data\\";
+				String nomeDoArquivo = "ProgramsExternal.txt";
 
 				// Carrega a janela no modo de leitura
 				Boolean old = UIManager.getBoolean("FileChooser.readOnly");
@@ -373,6 +396,7 @@ public class InterfaceJframe extends JFrame {
 				// Binario -> 0 = arquivo selecionado.
 				int r = fc.showOpenDialog(null);
 
+				boolean duplicated = false;
 				if (r == JFileChooser.APPROVE_OPTION) {
 					System.out.println(fc.getSelectedFile().getName());
 					for (int i = 0; i < fileNameB.size(); i++) {
@@ -394,9 +418,17 @@ public class InterfaceJframe extends JFrame {
 										+ fc.getSelectedFile().toString(),
 								"WARNING", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
+							// Criando o arquivo
+							try {
+								arquivo.escritorv2(path, nomeDoArquivo, fc.getSelectedFile().getName(),
+										fc.getSelectedFile().toString()); // Cria o arquivo e salva os dados
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+
 							fileNameB.add(fc.getSelectedFile().getName());
 							filePathB.add(fc.getSelectedFile().toString());
-							
+
 							// Atualiza a tabela
 							preencherTabelaProprietario(fileNameB, filePathB, tableProgramsBlocked);
 
@@ -417,6 +449,13 @@ public class InterfaceJframe extends JFrame {
 							// Limpa as selecoes
 							tableProgramsBlocked.getSelectionModel().clearSelection();
 							tableProgramsInstalled.getSelectionModel().clearSelection();
+							
+							// Habilita/desabilita botoes
+							btnRemove.setEnabled(false);
+							btnBlock.setEnabled(false);
+							btnApply.setEnabled(false); // Flag pra ativar o botao APPLY - Alteracoes recentes...
+							
+							contentPane.requestFocus();
 						}
 					}
 				}

@@ -27,8 +27,6 @@ public class GetWindowsProgramsBlocked {
 		ManipuladorDeArquivo arquivo = new ManipuladorDeArquivo();
 
 		// Define o path padrao
-		String username = System.getProperty("user.name");
-		// System.out.println(username);
 		String path = ".\\data\\";
 		String nomeDoArquivo = "ProgramsBlocked.txt";
 
@@ -55,8 +53,7 @@ public class GetWindowsProgramsBlocked {
 		} catch (Win32Exception e) {
 			System.out.println(e);
 
-			// Cria as chaves necessarias para bloquear os programas - Explorer -
-			// DisallowRun
+			// Cria as chaves necessarias para bloquear os programas - Explorer - DisallowRun
 			Advapi32Util.registryCreateKey(HKEY_CURRENT_USER,
 					"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
 
