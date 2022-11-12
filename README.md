@@ -29,7 +29,7 @@ Necessário ter Windows 10 64-bit ou Windows 10 32-bit.
 O usuário deve ter permissções administrativas para que o programa possa manipular registros do windows.
 
 # Instruções
-Caso prefira apenas rodar o programa, baixe o executavel corresponde à sua versão disponível no link abaixo: 
+Caso prefira apenas rodar o programa, baixe o executavel correspondente à sua versão disponível no link abaixo: 
 ```sh
 https://github.com/GustavoBorges13/RunBlocker/releases/tag/v1.6.0
 ```
