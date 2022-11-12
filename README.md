@@ -11,7 +11,7 @@
 ```
 # Sobre o projeto
  Esté é um Programa que bloqueia algum executavel ou algum programa instalado na sua maquina, sendo assim, ao bloquear certos programas ou arquivos, o sistema do windows vai bloquear a execução caso ele esteja na lista de programas bloqueados. 
- Neste projeto utilizei algumas bibliotecas explicadas abaixo para a manipulação do mesmo e levantamento de dados, no qual é criado 2 arquivos na pasta: C:\Users\[username]\AppData\Local\Run Blocker, onde dentro desta pasta o primeiro arquivo que é criado se trata de uma lista de quase todos os programas instalados na maquina do usuário, e o outro arquivo é o banco de dados, onde será salvo os arquivos que o usuario bloqueou. 
+ Neste projeto utilizei algumas bibliotecas explicadas abaixo para a manipulação do mesmo e levantamento de dados, no qual é criado 3 arquivos na pasta de origem do executável, no qual dentro desta chamada DATA, o primeiro arquivo que é criado se trata de uma lista de quase todos os programas instalados na maquina do usuário, o segundo arquivo se trata de um banco de dados onde será salvo os arquivos que o usuario bloqueou e o terceiro arquivo é uma lista dos programas que o usuário adicionou de forma externa, ou seja, ele adicionou um arquivo ou um executável atráves da opção de adicionar um programa .exe. 
  Como realizei a varredura? Realizei uma varredura no editor de registro onde os valores contidos nas pastas HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\ são salvas em ArrayLists e no mesmo existe algumas linhas de codigo capaz de diferenciar os .exe com as .dll, no qual toda vez que o usuario iniciar o programa ele cria um arquivo novo contendo a lista dos programas instalados na máquina com o nome de ProgramsInstalled.txt, pois pode ser que no futuro o usuario instale programas novos e para isso seria necessário criar linhas de codigo capaz de atualizar e buscar os dados automaticamente. Ainda falando sobre o arquivo, o outro arquivo criado é uma lista de programas bloqueados contidos na pasta HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer\DisallowRun, onde essas chaves serão usadas para criar um ArrayList com a função de mostrar os arquivos bloqueados pelo usuário com o nome de ProgramsBlocked.txt. De modo geral, essa manipulação de arquivo é responsável pela gravação e leitura com a intenção de criar uma tabela na inferface grafica onde o mesmo poderá ser manipulado pelo usuário conforme a necessidade de adicionar algum arquivo executavel (.exe) que não esteja na lista. 
  
  Utilizei a biblioteca JNI (Java Native Interface) para mudar a aplicação em um modo legado para que eu consiga realizar a manipulacao no editor de registro do Windows de forma indireta, logo, esse programa não funciona no linux.
@@ -23,5 +23,21 @@ Logo, ao executar o arquivo .bat ele cria uma chave do LeagueClient.exe passando
 
 Conquanto, aproveitando que falei do arquivo bat, esse é um dos motivos principais de eu criar esse programa rsrs, eu ultimamente estou tendo alguns problemas para focar nos estudos e o jogo League Of Legends está ocupando muito meu tempo, sendo assim, resolvi criar essa iniciativa com a intenção de obter mais conhecimento e fazer parte de um dos meus primeiros projetos feitos em JAVA.
 
-Em breve soltarei uma release de testes...
+
+# Requirimentos
+Necessário ter Windows 10 64-bit ou Windows 10 32-bit.
+O usuário deve ter permissções administrativas para que o programa possa manipular registros do windows.
+
+# Instruções
+Caso prefira apenas rodar o programa, baixe o executavel corresponde à sua versão disponível no link abaixo: 
+```sh
+https://github.com/GustavoBorges13/RunBlocker/releases/tag/v1.6.0
+```
+
+Após isso basta extrair utilizando alguma ferramenta de descompactação.
+
+Logo seguinte basta executar o programa, no qual eu configurei para pedir ao usuario que deia permissões de administração para ler e gravar registros.
+
+Caso opte por baixar o source code e rodar o programa .java, existe um file batch que criei para ajudar a executar o codigo em modo administrativo, basta extrair o source code e rodar o script conforme o print abaixo:
+
 
