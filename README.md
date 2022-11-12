@@ -35,9 +35,6 @@ https://github.com/GustavoBorges13/RunBlocker/releases/tag/v1.6.0
 ```
 
 Após isso basta extrair utilizando alguma ferramenta de descompactação.
-
-Logo seguinte basta executar o programa, no qual eu configurei para pedir ao usuario que deia permissões de administração para ler e gravar registros.
-
-Caso opte por baixar o source code e rodar o programa .java, existe um file batch que criei para ajudar a executar o codigo em modo administrativo, basta extrair o source code e rodar o script conforme o print abaixo:
-
+E por seguinte, basta executar o programa, no qual eu configurei para pedir ao usuario que deia permissões de administração para ler e gravar registros.
+Do lado esquerdo sáo os programas instalados e adicionados, e o lado direito sáo os programas bloqueados.
 
