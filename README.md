@@ -26,6 +26,7 @@ Conquanto, aproveitando que falei do arquivo bat, esse é um dos motivos princip
 
 # Requirimentos
 Necessário ter Windows 10 64-bit ou Windows 10 32-bit.
+
 O usuário deve ter permissções administrativas para que o programa possa manipular registros do windows.
 
 # Instruções
