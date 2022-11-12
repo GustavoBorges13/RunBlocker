@@ -44,3 +44,7 @@ Após isso basta extrair utilizando alguma ferramenta de descompactação.
 E por seguinte, basta executar o programa, no qual eu configurei para pedir ao usuario que deia permissões de administração para ler e gravar registros.
 Do lado esquerdo sáo os programas instalados e adicionados, e o lado direito sáo os programas bloqueados.
 
+Agora se você veio para testar o League of Legends, primeiro vai ter que executar o script para configurar as chaves de registro do jogo que náo é configurada corretamente pelos desenvolvedores do jogo. Sendo assim, faça o download do source code e navegue até a pasta Scripts e execute-o.
+```sh
+RunBlocker/src/scripts/LoL ADD path.bat
+```
