@@ -1,6 +1,6 @@
 # Run Blocker
 [![NPM](https://img.shields.io/npm/l/react)](https://github.com/GustavoBorges13/RunBlocker/blob/main/LICENSE) 
-[![Latest Stable Version](https://img.shields.io/badge/version-v1.5.0-blue)](https://github.com/GustavoBorges13/RunBlocker/releases)
+[![Latest Stable Version](https://img.shields.io/badge/version-v1.6.0-blue)](https://github.com/GustavoBorges13/RunBlocker/releases)
 [![Build Status](https://app.travis-ci.com/GustavoBorges13/RunBlocker.svg?branch=main)](https://app.travis-ci.com/GustavoBorges13/RunBlocker)
 ![GitHub last commit](https://img.shields.io/github/last-commit/GustavoBorges13/RunBlocker)
 
