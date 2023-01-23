@@ -5,7 +5,7 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/GustavoBorges13/RunBlocker)
 
 ```diff
-- Em desenvolvimento!
+- Finalizado!
 + Autor: Gustavo Borges Peres da Silva
 # First SOLO Project
 ```
